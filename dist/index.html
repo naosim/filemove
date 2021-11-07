@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<style>
+.archived {
+  text-decoration: line-through;
+}
+</style>
+<h2>inbox</h2>
+<button id="archiveAllButton">すべてアーカイブ</button>
+<ul id="inbox">
+  <li><input type="checkbox" /><a>hogehoge</a></li>
+</ul>
+<h2>詳細</h2>
+<div id="detail">
+  <div id="filename"></div>
+  <pre><code id="body"></code></pre>
+</div>
+
+<button id="initButton">init</button>
+
+<h2>設計</h2>
+<pre>
+# ユースケース
+- 一覧を読み込む
+- 一覧を再読み込みする
+- 詳細を表示する
+- チェック済みをarchiveへ移動する
+
+# モデル
+## ファイル
+- id ※ファイル名
+- 日時
+- 件名?
+- アーカイブする()
+- リストを取得する()
+- 件名を設定する(id, title);
+
+## 詳細
+- id
+- 詳細を取得する(id)
+- メモリを解放する(id)
+</pre>
+
+<script src="filemove.js"></script>
+<script>
+  
+
+</script>
