@@ -13,3 +13,8 @@ curl -fsSL https://deno.land/x/install/install.sh | sh
 export DENO_INSTALL="/home/gitpod/.deno"
 export PATH="$DENO_INSTALL/bin:$PATH"
 ```
+
+とりあえずサーバを立ち上げる
+```
+php -S 0.0.0.0:8080 -t src
+```
