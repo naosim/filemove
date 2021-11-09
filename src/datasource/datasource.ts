@@ -32,6 +32,7 @@ export class InboxFileRepositoryImpl  {
     // TODO 実装
     const fileHandle = await this.inboxDirHandle.getFileHandle(id)
     const file = await fileHandle.getFile();
+    moveTo(fileHandle, this.inboxDirHandle, this.archiveDirHandle);
     // fileHandle.moveTo(this.archiveDirHandle)
   }
 
@@ -92,4 +93,19 @@ async function verifyPermission(fileHandle: any, withWrite: boolean) {
 
   // The user did not grant permission, return false.
   return false;
+}
+
+async function moveTo(fileHandle, fromDirHandle, toDirHandle) {
+  const file = await fileHandle.getFile();
+  const name = file.name;
+  const text = await file.text();
+  await verifyPermission(fromDirHandle, true);
+  await verifyPermission(toDirHandle, true);
+  const newFileHandle = await toDirHandle.getFileHandle(name, {create: true});
+  //verifyPermission(newFileHandle, true);
+  const writable = await newFileHandle.createWritable();
+  await writable.write(text);
+  await writable.close();
+  
+  await fromDirHandle.removeEntry(name)
 }
