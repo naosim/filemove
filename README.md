@@ -18,3 +18,8 @@ export PATH="$DENO_INSTALL/bin:$PATH"
 ```
 php -S 0.0.0.0:8080 -t src
 ```
+
+build
+```
+deno bundle src/filemove.ts dist/filemove.js
+```

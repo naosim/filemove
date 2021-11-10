@@ -1,25 +1,25 @@
 class InboxFile {
     id;
     name;
-    constructor(id1, name){
-        this.id = id1;
+    constructor(id, name){
+        this.id = id;
         this.name = name;
     }
 }
 var ArchiveCandidateStatus;
-(function(ArchiveCandidateStatus1) {
+(function(ArchiveCandidateStatus) {
     class Entity {
         id;
         isArchived;
-        constructor(id2, isArchived1){
-            this.id = id2;
-            this.isArchived = isArchived1;
+        constructor(id, isArchived){
+            this.id = id;
+            this.isArchived = isArchived;
         }
         update(isArchived) {
             return new Entity(this.id, isArchived);
         }
     }
-    ArchiveCandidateStatus1.Entity = Entity;
+    ArchiveCandidateStatus.Entity = Entity;
     class Repository {
         map = {
         };
@@ -40,7 +40,7 @@ var ArchiveCandidateStatus;
             return this.find(id).isArchived;
         }
     }
-    ArchiveCandidateStatus1.Repository = Repository;
+    ArchiveCandidateStatus.Repository = Repository;
 })(ArchiveCandidateStatus || (ArchiveCandidateStatus = {
 }));
 class InboxFileRepositoryImpl {
@@ -71,8 +71,8 @@ class InboxFileRepositoryImpl {
     }
     async archive(id) {
         const fileHandle = await this.inboxDirHandle.getFileHandle(id);
-        const file = await fileHandle.getFile();
-        fileHandle.moveTo(this.archiveDirHandle);
+        await fileHandle.getFile();
+        moveTo(fileHandle, this.inboxDirHandle, this.archiveDirHandle);
     }
     async getBody(id) {
         const fileHandle = await this.inboxDirHandle.getFileHandle(id);
@@ -127,6 +127,20 @@ async function verifyPermission(fileHandle, withWrite) {
         return true;
     }
     return false;
+}
+async function moveTo(fileHandle, fromDirHandle, toDirHandle) {
+    const file = await fileHandle.getFile();
+    const name = file.name;
+    const text = await file.text();
+    await verifyPermission(fromDirHandle, true);
+    const newFileHandle = await toDirHandle.getFileHandle(name, {
+        create: true
+    });
+    const writable = await newFileHandle.createWritable();
+    await writable.write(text);
+    await writable.close();
+    await verifyPermission(toDirHandle, true);
+    await fromDirHandle.removeEntry(name);
 }
 var inboxFileRepository;
 var detailRepository;

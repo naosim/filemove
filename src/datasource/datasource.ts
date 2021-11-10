@@ -95,17 +95,21 @@ async function verifyPermission(fileHandle: any, withWrite: boolean) {
   return false;
 }
 
-async function moveTo(fileHandle, fromDirHandle, toDirHandle) {
+async function moveTo(fileHandle: any, fromDirHandle: any, toDirHandle: any) {
   const file = await fileHandle.getFile();
   const name = file.name;
   const text = await file.text();
+  
+  // TODO: 移動先、移動元ファイルの存在有無確認
+
+  // 移動先ファイルの作成
   await verifyPermission(fromDirHandle, true);
-  await verifyPermission(toDirHandle, true);
   const newFileHandle = await toDirHandle.getFileHandle(name, {create: true});
-  //verifyPermission(newFileHandle, true);
   const writable = await newFileHandle.createWritable();
   await writable.write(text);
   await writable.close();
   
+  // 移動元ファイルの削除
+  await verifyPermission(toDirHandle, true);
   await fromDirHandle.removeEntry(name)
 }
