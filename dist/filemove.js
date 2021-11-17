@@ -6,43 +6,6 @@ class InboxFile {
         this.name = name;
     }
 }
-var ArchiveCandidateStatus;
-(function(ArchiveCandidateStatus1) {
-    class Entity {
-        id;
-        isArchived;
-        constructor(id2, isArchived1){
-            this.id = id2;
-            this.isArchived = isArchived1;
-        }
-        update(isArchived) {
-            return new Entity(this.id, isArchived);
-        }
-    }
-    ArchiveCandidateStatus1.Entity = Entity;
-    class Repository {
-        map = {
-        };
-        find(id) {
-            if (!this.map[id]) {
-                this.map[id] = new Entity(id, false);
-            }
-            return this.map[id];
-        }
-        findAllArchved() {
-            return Object.values(this.map).filter((v)=>v.isArchived
-            );
-        }
-        update(entity) {
-            this.map[entity.id] = entity;
-        }
-        isArchived(id) {
-            return this.find(id).isArchived;
-        }
-    }
-    ArchiveCandidateStatus1.Repository = Repository;
-})(ArchiveCandidateStatus || (ArchiveCandidateStatus = {
-}));
 class InboxFileRepositoryImpl {
     inboxDirHandle;
     archiveDirHandle;
@@ -143,7 +106,6 @@ async function moveTo(fileHandle, fromDirHandle, toDirHandle) {
 }
 var inboxFileRepository;
 var detailRepository;
-const archiveCandidateStatusRepository = new ArchiveCandidateStatus.Repository();
 class MessageVM {
     #value;
     isChecked;
