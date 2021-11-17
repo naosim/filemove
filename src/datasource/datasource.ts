@@ -2,7 +2,7 @@ import {InboxFile, InboxFileRepository, DetailRepository} from "../domain/domain
 
 interface FileSystemDirectoryHandle {}
 
-export class InboxFileRepositoryImpl  {
+export class InboxFileRepositoryImpl implements InboxFileRepository {
   private fileSystemDirectoryHandleMap: {[key: string]: FileSystemDirectoryHandle} = {};
   constructor(
     private readonly inboxDirHandle: any,
@@ -19,19 +19,36 @@ export class InboxFileRepositoryImpl  {
     const map: {[key: string]: FileSystemDirectoryHandle} = {};
     for await (const [key, value] of this.inboxDirHandle.entries()) {
       map[key] = value;
-      // console.log({ key, value })
     }
     this.fileSystemDirectoryHandleMap = map;
   }
 
+  /**
+   * ファイル名から日付を取得する
+   * 例：2021_1113_0401_hoge.txt => 2021/11/13 04:01
+   * @param filename 
+   * @returns 
+   */
+  static getDateFromFilename(filename: string): Date {
+    const segs = filename.split('_');
+    const year = segs[0];
+    const month = segs[1].slice(0, 2);
+    const date = segs[1].slice(2);
+    const hour = segs[2].slice(0, 2);
+    const minute = segs[2].slice(2);
+    return new Date(`${year}/${month}/${date} ${hour}:${minute}`);
+  }
+
   findAll(): InboxFile[] {
-    return Object.keys(this.fileSystemDirectoryHandleMap).map(v => new InboxFile(v, v))
+    return Object.keys(this.fileSystemDirectoryHandleMap).map(v => {
+      return new InboxFile(v, v, InboxFileRepositoryImpl.getDateFromFilename(v))
+    })
   }
 
   async archive(id: string): Promise<void> {
     // TODO 実装
     const fileHandle = await this.inboxDirHandle.getFileHandle(id)
-    const file = await fileHandle.getFile();
+    moveTo(fileHandle, this.inboxDirHandle, this.archiveDirHandle);
     // fileHandle.moveTo(this.archiveDirHandle)
   }
 
@@ -63,7 +80,7 @@ export class InboxFileRepositoryImpl  {
   }
 }
 
-export class DetailRepositoryImpl {
+export class DetailRepositoryImpl implements DetailRepository {
   private map: {[key: string]: string} = {}
   constructor(private readonly inboxFileRepositoryImpl: InboxFileRepositoryImpl) {}
   async find(id: string): Promise<string> {
@@ -92,4 +109,23 @@ async function verifyPermission(fileHandle: any, withWrite: boolean) {
 
   // The user did not grant permission, return false.
   return false;
+}
+
+async function moveTo(fileHandle: any, fromDirHandle: any, toDirHandle: any) {
+  const file = await fileHandle.getFile();
+  const name = file.name;
+  const text = await file.text();
+  
+  // TODO: 移動先、移動元ファイルの存在有無確認
+
+  // 移動先ファイルの作成
+  await verifyPermission(fromDirHandle, true);
+  const newFileHandle = await toDirHandle.getFileHandle(name, {create: true});
+  const writable = await newFileHandle.createWritable();
+  await writable.write(text);
+  await writable.close();
+  
+  // 移動元ファイルの削除
+  await verifyPermission(toDirHandle, true);
+  await fromDirHandle.removeEntry(name)
 }
