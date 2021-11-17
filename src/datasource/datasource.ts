@@ -24,8 +24,26 @@ export class InboxFileRepositoryImpl  {
     this.fileSystemDirectoryHandleMap = map;
   }
 
+  /**
+   * ファイル名から日付を取得する
+   * 例：2021_1113_0401_hoge.txt => 2021/11/13 04:01
+   * @param filename 
+   * @returns 
+   */
+  static getDateFromFilename(filename: string): Date {
+    const segs = filename.split('_');
+    const year = segs[0];
+    const month = segs[1].slice(0, 2);
+    const date = segs[1].slice(2);
+    const hour = segs[2].slice(0, 2);
+    const minute = segs[2].slice(2);
+    return new Date(`${year}/${month}/${date} ${hour}:${minute}`);
+  }
+
   findAll(): InboxFile[] {
-    return Object.keys(this.fileSystemDirectoryHandleMap).map(v => new InboxFile(v, v))
+    return Object.keys(this.fileSystemDirectoryHandleMap).map(v => {
+      return new InboxFile(v, v, InboxFileRepositoryImpl.getDateFromFilename(v))
+    })
   }
 
   async archive(id: string): Promise<void> {

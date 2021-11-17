@@ -1,9 +1,11 @@
 class InboxFile {
     id;
     name;
-    constructor(id1, name){
+    date;
+    constructor(id1, name, date){
         this.id = id1;
         this.name = name;
+        this.date = date;
     }
 }
 class InboxFileRepositoryImpl {
@@ -28,9 +30,19 @@ class InboxFileRepositoryImpl {
         }
         this.fileSystemDirectoryHandleMap = map;
     }
+    static getDateFromFilename(filename) {
+        const segs = filename.split('_');
+        const year = segs[0];
+        const month = segs[1].slice(0, 2);
+        const date1 = segs[1].slice(2);
+        const hour = segs[2].slice(0, 2);
+        const minute = segs[2].slice(2);
+        return new Date(`${year}/${month}/${date1} ${hour}:${minute}`);
+    }
     findAll() {
-        return Object.keys(this.fileSystemDirectoryHandleMap).map((v)=>new InboxFile(v, v)
-        );
+        return Object.keys(this.fileSystemDirectoryHandleMap).map((v)=>{
+            return new InboxFile(v, v, InboxFileRepositoryImpl.getDateFromFilename(v));
+        });
     }
     async archive(id) {
         const fileHandle = await this.inboxDirHandle.getFileHandle(id);
@@ -107,11 +119,14 @@ async function moveTo(fileHandle, fromDirHandle, toDirHandle) {
 var inboxFileRepository;
 var detailRepository;
 class MessageVM {
+    today;
     #value;
     isChecked;
-    constructor(value){
+    constructor(value, today){
+        this.today = today;
         this.#value = value;
         this.isChecked = value.isChecked;
+        console.log(today);
     }
     get id() {
         return this.#value.id;
@@ -120,8 +135,18 @@ class MessageVM {
         return this.#value.subject;
     }
     get date() {
-        return "mm/dd";
+        const date1 = this.#value.date;
+        if (date1.getTime() >= this.today.getTime()) {
+            return date1.toLocaleTimeString().split(':').slice(0, -1).join(':');
+        }
+        if (date1.getFullYear() == this.today.getFullYear()) {
+            return this.#value.date.toLocaleString().slice(5).split(':').slice(0, -1).join(':');
+        }
+        return this.#value.date.toLocaleString().split(':').slice(0, -1).join(':');
     }
+}
+function today1() {
+    return new Date(new Date().toLocaleDateString());
 }
 var data = {
     message: 'Hello Vue!',
@@ -129,8 +154,9 @@ var data = {
         new MessageVM({
             id: "1",
             subject: "sample",
-            isChecked: false
-        }), 
+            isChecked: false,
+            date: new Date()
+        }, today1()), 
     ],
     detail: {
         subject: 'さぶじぇくと',
@@ -174,8 +200,9 @@ var app = new Vue({
             data.list = inboxFileRepository.findAll().map((v)=>new MessageVM({
                     id: v.id,
                     subject: v.name,
-                    isChecked: false
-                })
+                    isChecked: false,
+                    date: v.date
+                }, today1())
             );
         },
         archiveAll: async function() {

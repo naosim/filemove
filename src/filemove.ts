@@ -31,9 +31,10 @@ var detailRepository: DetailRepository;
 class MessageVM {
   #value;
   isChecked: boolean;
-  constructor(value: {id: string, subject: string, isChecked: boolean}) {
+  constructor(value: {id: string, subject: string, isChecked: boolean, date: Date}, private readonly today: Date) {
     this.#value = value;
     this.isChecked = value.isChecked;
+    console.log(today);
     // this.subject = value.subject;
   }
   get id() {
@@ -43,16 +44,28 @@ class MessageVM {
     return this.#value.subject;
   }
   get date() {
-    return "mm/dd";
+    const date = this.#value.date;
+    if(date.getTime() >= this.today.getTime()) {
+      return date.toLocaleTimeString().split(':').slice(0, -1).join(':');
+    }
+    if(date.getFullYear() == this.today.getFullYear()) {
+      return this.#value.date.toLocaleString().slice(5).split(':').slice(0, -1).join(':');
+    }
+    return this.#value.date.toLocaleString().split(':').slice(0, -1).join(':');
   }  
 }
+
+function today(): Date {
+  return new Date(new Date().toLocaleDateString());
+}
+
 var data = {
   message: 'Hello Vue!',
   // map: {
   //   "1": new MessageVM({id:"1", subject: "sample", isChecked: false})
   // } as {[key: string]: MessageVM},
   list: [
-    new MessageVM({id:"1", subject: "sample", isChecked: false}),
+    new MessageVM({id:"1", subject: "sample", isChecked: false, date: new Date()}, today()),
   ],
   detail: {
     subject: 'さぶじぇくと',
@@ -100,7 +113,7 @@ var app = new Vue({
       //   data.list.pop();
       // }
       data.list = inboxFileRepository.findAll()
-        .map(v => new MessageVM({id: v.id, subject: v.name, isChecked: false}))
+        .map(v => new MessageVM({id: v.id, subject: v.name, isChecked: false, date: v.date}, today()))
         // .forEach(v => data.map[v.id] = v);
     },
     archiveAll: async function() {

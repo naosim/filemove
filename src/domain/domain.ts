@@ -1,5 +1,5 @@
 export class InboxFile {
-  constructor(readonly id:string, readonly name: string) {}
+  constructor(readonly id:string, readonly name: string, readonly date: Date) {}
 }
 
 export interface InboxFileRepository {
