@@ -190,13 +190,15 @@ var app = new Vue({
             data.detail.body = body;
         },
         init: async function() {
-            const rep = await InboxFileRepositoryImpl.create();
-            await rep.init();
-            inboxFileRepository = rep;
-            detailRepository = new DetailRepositoryImpl(rep);
-            this.reload();
+            if (!inboxFileRepository) {
+                const rep = await InboxFileRepositoryImpl.create();
+                inboxFileRepository = rep;
+                detailRepository = new DetailRepositoryImpl(rep);
+            }
+            await this.reload();
         },
-        reload: function() {
+        reload: async function() {
+            await inboxFileRepository.reload();
             data.list = inboxFileRepository.findAll().map((v)=>new MessageVM({
                     id: v.id,
                     subject: v.name,

@@ -2,7 +2,7 @@ import {InboxFile, InboxFileRepository, DetailRepository} from "../domain/domain
 
 interface FileSystemDirectoryHandle {}
 
-export class InboxFileRepositoryImpl  {
+export class InboxFileRepositoryImpl implements InboxFileRepository {
   private fileSystemDirectoryHandleMap: {[key: string]: FileSystemDirectoryHandle} = {};
   constructor(
     private readonly inboxDirHandle: any,
@@ -81,7 +81,7 @@ export class InboxFileRepositoryImpl  {
   }
 }
 
-export class DetailRepositoryImpl {
+export class DetailRepositoryImpl implements DetailRepository {
   private map: {[key: string]: string} = {}
   constructor(private readonly inboxFileRepositoryImpl: InboxFileRepositoryImpl) {}
   async find(id: string): Promise<string> {

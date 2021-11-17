@@ -5,28 +5,6 @@ import { InboxFile, InboxFileRepository, DetailRepository } from "./domain/domai
 var inboxFileRepository: InboxFileRepository;
 var detailRepository: DetailRepository;
 
-// (window as any).document.querySelector('#initButton').addEventListener('click', async ()=> {
-//   const rep = await InboxFileRepositoryImpl.create()
-//   await rep.init()
-//   inboxFileRepository = rep;
-//   detailRepository = new DetailRepositoryImpl(rep);
-
-//   reload();
-// })
-
-
-// function reload() {
-//   const ul = (window as any).document.querySelector('ul');
-//   ul.innerHTML = '';// clear child
-//   // const list: InboxFile[] = inboxFileRepository.findAll();
-//   inboxFileRepository.findAll().map((v) => createInboxLi(v)).forEach(v => ul.appendChild(v));
-
-//   (window as any).document.querySelectorAll('a.row').forEach((v:any) => {
-//     v.addEventListener('click', () => console.log(v.innerText))
-//   })
-// }
-
-// (window as any).document.querySelector('#archiveAllButton').addEventListener('click', async () => archiveAll());
 
 class MessageVM {
   #value;
@@ -100,18 +78,15 @@ var app = new Vue({
       data.detail.body = body;
     },
     init: async function() {
-      const rep = await InboxFileRepositoryImpl.create()
-      await rep.init()
-      inboxFileRepository = rep;
-      detailRepository = new DetailRepositoryImpl(rep);
-
-      this.reload();
+      if(!inboxFileRepository) {
+        const rep = await InboxFileRepositoryImpl.create()
+        inboxFileRepository = rep;
+        detailRepository = new DetailRepositoryImpl(rep);
+      }
+      await this.reload();
     },
-    reload: function() {
-      // data.list
-      // while(data.list.length > 0) {
-      //   data.list.pop();
-      // }
+    reload: async function() {
+      await inboxFileRepository.reload()
       data.list = inboxFileRepository.findAll()
         .map(v => new MessageVM({id: v.id, subject: v.name, isChecked: false, date: v.date}, today()))
         // .forEach(v => data.map[v.id] = v);
