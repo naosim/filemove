@@ -41,7 +41,8 @@ var data = {
   ],
   detail: {
     subject: 'さぶじぇくと',
-    body: 'ぼでぃー'
+    body: 'ぼでぃー',
+    selected: null as MessageVM | null
   }
 }
 declare var Vue: any;
@@ -67,6 +68,7 @@ var app = new Vue({
 
       data.detail.subject = item.id;
       data.detail.body = body;
+      data.detail.selected = item;
     },
     init: async function() {
       if(!inboxFileRepository) {

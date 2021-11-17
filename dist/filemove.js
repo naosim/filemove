@@ -158,7 +158,8 @@ var data = {
     ],
     detail: {
         subject: 'さぶじぇくと',
-        body: 'ぼでぃー'
+        body: 'ぼでぃー',
+        selected: null
     }
 };
 var app = new Vue({
@@ -183,6 +184,7 @@ var app = new Vue({
             const body = await detailRepository.find(item.id);
             data.detail.subject = item.id;
             data.detail.body = body;
+            data.detail.selected = item;
         },
         init: async function() {
             if (!inboxFileRepository) {
