@@ -4,7 +4,6 @@ export class InboxFile {
 
 export interface InboxFileRepository {
   findAll(): InboxFile[]
-  // update(id: string, data: any): void
   archive(id: string): Promise<void>
   reload(): Promise<void>
 }

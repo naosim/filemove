@@ -126,7 +126,6 @@ class MessageVM {
         this.today = today;
         this.#value = value;
         this.isChecked = value.isChecked;
-        console.log(today);
     }
     get id() {
         return this.#value.id;
@@ -149,7 +148,6 @@ function today1() {
     return new Date(new Date().toLocaleDateString());
 }
 var data = {
-    message: 'Hello Vue!',
     list: [
         new MessageVM({
             id: "1",
@@ -176,15 +174,12 @@ var app = new Vue({
             );
         },
         stage: function(item) {
-            console.log("click");
             item.isChecked = true;
-            console.log(item.isChecked);
         },
         unstage: function(item) {
             item.isChecked = false;
         },
         showDetail: async function(item) {
-            console.log('click show detail ' + item.id);
             const body = await detailRepository.find(item.id);
             data.detail.subject = item.id;
             data.detail.body = body;

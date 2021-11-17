@@ -19,7 +19,6 @@ export class InboxFileRepositoryImpl implements InboxFileRepository {
     const map: {[key: string]: FileSystemDirectoryHandle} = {};
     for await (const [key, value] of this.inboxDirHandle.entries()) {
       map[key] = value;
-      // console.log({ key, value })
     }
     this.fileSystemDirectoryHandleMap = map;
   }

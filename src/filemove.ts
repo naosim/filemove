@@ -12,8 +12,6 @@ class MessageVM {
   constructor(value: {id: string, subject: string, isChecked: boolean, date: Date}, private readonly today: Date) {
     this.#value = value;
     this.isChecked = value.isChecked;
-    console.log(today);
-    // this.subject = value.subject;
   }
   get id() {
     return this.#value.id;
@@ -38,10 +36,6 @@ function today(): Date {
 }
 
 var data = {
-  message: 'Hello Vue!',
-  // map: {
-  //   "1": new MessageVM({id:"1", subject: "sample", isChecked: false})
-  // } as {[key: string]: MessageVM},
   list: [
     new MessageVM({id:"1", subject: "sample", isChecked: false, date: new Date()}, today()),
   ],
@@ -63,15 +57,12 @@ var app = new Vue({
       return data.list.filter(v => v.isChecked)
     },
     stage: function(item: MessageVM) {
-      console.log("click");
       item.isChecked = true;
-      console.log(item.isChecked);
     },
     unstage: function(item: MessageVM) {
       item.isChecked = false;
     },
     showDetail: async function(item: MessageVM) {
-      console.log('click show detail ' + item.id)
       const body = await detailRepository.find(item.id)
 
       data.detail.subject = item.id;
@@ -89,7 +80,6 @@ var app = new Vue({
       await inboxFileRepository.reload()
       data.list = inboxFileRepository.findAll()
         .map(v => new MessageVM({id: v.id, subject: v.name, isChecked: false, date: v.date}, today()))
-        // .forEach(v => data.map[v.id] = v);
     },
     archiveAll: async function() {
       const list = this.stageMessages();
