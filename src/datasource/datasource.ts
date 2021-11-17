@@ -31,7 +31,6 @@ export class InboxFileRepositoryImpl  {
   async archive(id: string): Promise<void> {
     // TODO 実装
     const fileHandle = await this.inboxDirHandle.getFileHandle(id)
-    const file = await fileHandle.getFile();
     moveTo(fileHandle, this.inboxDirHandle, this.archiveDirHandle);
     // fileHandle.moveTo(this.archiveDirHandle)
   }

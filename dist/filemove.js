@@ -1,25 +1,25 @@
 class InboxFile {
     id;
     name;
-    constructor(id, name){
-        this.id = id;
+    constructor(id1, name){
+        this.id = id1;
         this.name = name;
     }
 }
 var ArchiveCandidateStatus;
-(function(ArchiveCandidateStatus) {
+(function(ArchiveCandidateStatus1) {
     class Entity {
         id;
         isArchived;
-        constructor(id, isArchived){
-            this.id = id;
-            this.isArchived = isArchived;
+        constructor(id2, isArchived1){
+            this.id = id2;
+            this.isArchived = isArchived1;
         }
         update(isArchived) {
             return new Entity(this.id, isArchived);
         }
     }
-    ArchiveCandidateStatus.Entity = Entity;
+    ArchiveCandidateStatus1.Entity = Entity;
     class Repository {
         map = {
         };
@@ -40,7 +40,7 @@ var ArchiveCandidateStatus;
             return this.find(id).isArchived;
         }
     }
-    ArchiveCandidateStatus.Repository = Repository;
+    ArchiveCandidateStatus1.Repository = Repository;
 })(ArchiveCandidateStatus || (ArchiveCandidateStatus = {
 }));
 class InboxFileRepositoryImpl {
@@ -71,7 +71,6 @@ class InboxFileRepositoryImpl {
     }
     async archive(id) {
         const fileHandle = await this.inboxDirHandle.getFileHandle(id);
-        await fileHandle.getFile();
         moveTo(fileHandle, this.inboxDirHandle, this.archiveDirHandle);
     }
     async getBody(id) {
@@ -130,67 +129,100 @@ async function verifyPermission(fileHandle, withWrite) {
 }
 async function moveTo(fileHandle, fromDirHandle, toDirHandle) {
     const file = await fileHandle.getFile();
-    const name = file.name;
+    const name1 = file.name;
     const text = await file.text();
     await verifyPermission(fromDirHandle, true);
-    const newFileHandle = await toDirHandle.getFileHandle(name, {
+    const newFileHandle = await toDirHandle.getFileHandle(name1, {
         create: true
     });
     const writable = await newFileHandle.createWritable();
     await writable.write(text);
     await writable.close();
     await verifyPermission(toDirHandle, true);
-    await fromDirHandle.removeEntry(name);
+    await fromDirHandle.removeEntry(name1);
 }
 var inboxFileRepository;
 var detailRepository;
 const archiveCandidateStatusRepository = new ArchiveCandidateStatus.Repository();
-window.document.querySelector('#initButton').addEventListener('click', async ()=>{
-    const rep = await InboxFileRepositoryImpl.create();
-    await rep.init();
-    inboxFileRepository = rep;
-    detailRepository = new DetailRepositoryImpl(rep);
-    reload();
+class MessageVM {
+    #value;
+    isChecked;
+    constructor(value){
+        this.#value = value;
+        this.isChecked = value.isChecked;
+    }
+    get id() {
+        return this.#value.id;
+    }
+    get subject() {
+        return this.#value.subject;
+    }
+    get date() {
+        return "mm/dd";
+    }
+}
+var data = {
+    message: 'Hello Vue!',
+    list: [
+        new MessageVM({
+            id: "1",
+            subject: "sample",
+            isChecked: false
+        }), 
+    ],
+    detail: {
+        subject: 'さぶじぇくと',
+        body: 'ぼでぃー'
+    }
+};
+var app = new Vue({
+    el: '#app',
+    data: data,
+    methods: {
+        inboxMessages: function() {
+            return data.list.filter((v)=>!v.isChecked
+            );
+        },
+        stageMessages: function() {
+            return data.list.filter((v)=>v.isChecked
+            );
+        },
+        stage: function(item) {
+            console.log("click");
+            item.isChecked = true;
+            console.log(item.isChecked);
+        },
+        unstage: function(item) {
+            item.isChecked = false;
+        },
+        showDetail: async function(item) {
+            console.log('click show detail ' + item.id);
+            const body = await detailRepository.find(item.id);
+            data.detail.subject = item.id;
+            data.detail.body = body;
+        },
+        init: async function() {
+            const rep = await InboxFileRepositoryImpl.create();
+            await rep.init();
+            inboxFileRepository = rep;
+            detailRepository = new DetailRepositoryImpl(rep);
+            this.reload();
+        },
+        reload: function() {
+            data.list = inboxFileRepository.findAll().map((v)=>new MessageVM({
+                    id: v.id,
+                    subject: v.name,
+                    isChecked: false
+                })
+            );
+        },
+        archiveAll: async function() {
+            const list = this.stageMessages();
+            for(let i = 0; i < list.length; i++){
+                const v = list[i];
+                await inboxFileRepository.archive(v.id);
+            }
+            data.list = this.inboxMessages();
+        }
+    }
 });
-function createInboxLi(inboxFile) {
-    const status = archiveCandidateStatusRepository.find(inboxFile.id);
-    const button = window.document.createElement('button');
-    button.innerHTML = 'archived';
-    button.addEventListener('click', ()=>{
-        console.log('archive');
-        archiveCandidateStatusRepository.update(status.update(true));
-        aLink.className = 'archived';
-    });
-    const aLink = window.document.createElement('a');
-    aLink.innerHTML = inboxFile.name;
-    aLink.className = status.isArchived ? 'archived' : '';
-    aLink.addEventListener('click', async ()=>{
-        console.log(inboxFile.name);
-        const body = window.document.querySelector('#body');
-        body.innerHTML = await detailRepository.find(inboxFile.id);
-    });
-    const li = window.document.createElement('li');
-    li.appendChild(button);
-    li.appendChild(aLink);
-    return li;
-}
-function reload() {
-    const ul = window.document.querySelector('ul');
-    ul.innerHTML = '';
-    inboxFileRepository.findAll().map((v)=>createInboxLi(v)
-    ).forEach((v)=>ul.appendChild(v)
-    );
-    window.document.querySelectorAll('a.row').forEach((v)=>{
-        v.addEventListener('click', ()=>console.log(v.innerText)
-        );
-    });
-}
-async function archiveAll() {
-    archiveCandidateStatusRepository.findAllArchved().forEach(async (v)=>{
-        await inboxFileRepository.archive(v.id);
-        console.log('archved');
-    });
-    console.log('archive end');
-}
-window.document.querySelector('#archiveAllButton').addEventListener('click', async ()=>archiveAll()
-);

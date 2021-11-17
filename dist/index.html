@@ -1,48 +1,65 @@
 <!DOCTYPE html>
 <meta charset="utf-8" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.css" integrity="sha512-5fsy+3xG8N/1PV5MIJz9ZsWpkltijBI48gBzQ/Z2eVATePGHOkMIn+xTDHIfTZFVb9GMpflF2wOWItqxAP2oLQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
-.archived {
-  text-decoration: line-through;
-}
 </style>
-<h2>inbox</h2>
-<button id="archiveAllButton">すべてアーカイブ</button>
-<ul id="inbox">
-  <li><input type="checkbox" /><a>hogehoge</a></li>
-</ul>
-<h2>詳細</h2>
-<div id="detail">
-  <div id="filename"></div>
-  <pre><code id="body"></code></pre>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<body>
+<div id="app" class="container">
+  {{ message }}
+  <div class="row">
+    <div class="six columns">
+      <h4>INBOX</h4>
+      <button v-on:click="init">init</button>
+      <table class="u-full-width">
+        <thead>
+          <tr>
+            <th>date</th>
+            <th>subject</th>
+            <th>chk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in inboxMessages()">
+            <td>{{item.date}}</td>
+            <td><a v-on:click="showDetail(item)">{{item.subject}}</a></td>
+            <td><button v-on:click="stage(item)">STAGE</button></td>
+          </tr> 
+        </tbody>
+      </table>
 
-<button id="initButton">init</button>
-
-<h2>設計</h2>
-<pre>
-# ユースケース
-- 一覧を読み込む
-- 一覧を再読み込みする
-- 詳細を表示する
-- チェック済みをarchiveへ移動する
-
-# モデル
-## ファイル
-- id ※ファイル名
-- 日時
-- 件名?
-- アーカイブする()
-- リストを取得する()
-- 件名を設定する(id, title);
-
-## 詳細
-- id
-- 詳細を取得する(id)
-- メモリを解放する(id)
-</pre>
+      
+      <h4>STAGE</h4>
+      <table class="u-full-width">
+        <thead>
+          <tr>
+            <th>date</th>
+            <th>subject</th>
+            <th>chk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in stageMessages()">
+            <td>{{item.date}}</td>
+            <td><a v-on:click="showDetail(item)">{{item.subject}}</a></td>
+            <td><button v-on:click="unstage(item)">UNSTAGE</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <button v-on:click="archiveAll()">アーカイブする</button>
+    </div>
+    <div class="six columns">
+      <div class="six columns" style="position: fixed;">
+      <h4>詳細</h4>
+      件名：{{detail.subject}}
+      <pre><code>{{detail.body}}</code></pre>
+      </div>
+    </div>
+</div></div>
 
 <script src="filemove.js"></script>
 <script>
-  
 
 </script>
+</body>
+
