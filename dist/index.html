@@ -18,6 +18,7 @@ tr.selected {
     <div class="pure-u-1-2">
       <h4>INBOX</h4>
       <button class="button-small pure-button pure-button-primary" v-on:click="init">更新</button>
+      <div class="pure-form"><input type="text" v-model="filterText" placeholder="フィルター"/></div>
       <table class="pure-table pure-table-horizontal">
         <thead>
           <tr>

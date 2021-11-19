@@ -30,14 +30,26 @@ class MessageVM {
       return this.#value.date.toLocaleString().slice(5).split(':').slice(0, -1).join(':');
     }
     return this.#value.date.toLocaleString().split(':').slice(0, -1).join(':');
-  }  
+  }
+  get dateRaw(): Date {
+    return this.#value.date
+  }
 }
 
 class MessageVMList {
   constructor(readonly values: MessageVM[]) {
   }
-  inboxMessages(): MessageVM[] {
-    return this.values.filter(v => !v.isChecked)
+  inboxMessages(filterTextList: string[]): MessageVM[] {
+    return this.values
+      .filter(v => !v.isChecked)
+      .filter(v => {
+        for(let i = 0; i < filterTextList.length; i++) {
+          if(`${v.dateRaw.toLocaleString()} ${v.subject}`.indexOf(filterTextList[i]) == -1) {
+            return false;
+          }
+        }
+        return true;
+      })
   }
   stageMessages(): MessageVM[] {
     return this.values.filter(v => v.isChecked)
@@ -57,9 +69,9 @@ var data = {
   ]),
   detail: {
     subject: 'さぶじぇくと',
-    body: 'ぼでぃー',
-    selected: null as MessageVM | null
-  }
+    body: 'ぼでぃー'
+  },
+  filterText: ''
 }
 declare var Vue: any;
 
@@ -68,7 +80,7 @@ var app = new Vue({
   data: data,
   methods: {
     inboxMessages: function() {
-      return data.list.inboxMessages()
+      return data.list.inboxMessages(data.filterText.split(' '))
     },
     stageMessages: function() {
       return data.list.stageMessages()
@@ -84,7 +96,6 @@ var app = new Vue({
       data.list.select(item.id);
       data.detail.subject = item.id;
       data.detail.body = body;
-      data.detail.selected = item;
     },
     init: async function() {
       if(!inboxFileRepository) {
@@ -106,7 +117,7 @@ var app = new Vue({
         const v = list[i];
         await inboxFileRepository.archive(v.id);
       }
-      data.list = new MessageVMList(data.list.inboxMessages());
+      data.list = new MessageVMList(data.list.inboxMessages([]));
       
     }
   },

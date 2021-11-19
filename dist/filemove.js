@@ -145,15 +145,25 @@ class MessageVM {
         }
         return this.#value.date.toLocaleString().split(':').slice(0, -1).join(':');
     }
+    get dateRaw() {
+        return this.#value.date;
+    }
 }
 class MessageVMList {
     values;
     constructor(values){
         this.values = values;
     }
-    inboxMessages() {
+    inboxMessages(filterTextList) {
         return this.values.filter((v)=>!v.isChecked
-        );
+        ).filter((v)=>{
+            for(let i = 0; i < filterTextList.length; i++){
+                if (`${v.dateRaw.toLocaleString()} ${v.subject}`.indexOf(filterTextList[i]) == -1) {
+                    return false;
+                }
+            }
+            return true;
+        });
     }
     stageMessages() {
         return this.values.filter((v)=>v.isChecked
@@ -178,16 +188,16 @@ var data = {
     ]),
     detail: {
         subject: 'さぶじぇくと',
-        body: 'ぼでぃー',
-        selected: null
-    }
+        body: 'ぼでぃー'
+    },
+    filterText: ''
 };
 var app = new Vue({
     el: '#app',
     data: data,
     methods: {
         inboxMessages: function() {
-            return data.list.inboxMessages();
+            return data.list.inboxMessages(data.filterText.split(' '));
         },
         stageMessages: function() {
             return data.list.stageMessages();
@@ -203,7 +213,6 @@ var app = new Vue({
             data.list.select(item.id);
             data.detail.subject = item.id;
             data.detail.body = body;
-            data.detail.selected = item;
         },
         init: async function() {
             if (!inboxFileRepository) {
@@ -230,7 +239,7 @@ var app = new Vue({
                 const v = list[i];
                 await inboxFileRepository.archive(v.id);
             }
-            data.list = new MessageVMList(data.list.inboxMessages());
+            data.list = new MessageVMList(data.list.inboxMessages([]));
         }
     }
 });
