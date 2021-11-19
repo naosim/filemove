@@ -27,7 +27,7 @@ tr.selected {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in inboxMessages()">
+          <tr v-for="item in inboxMessages()" v-bind:class="{ selected: item.selected }">
             <td>{{item.date}}</td>
             <td><a v-on:click="showDetail(item)">{{item.subject}}</a></td>
             <td><button class="button-small pure-button pure-button-primary" v-on:click="stage(item)">STAGE</button></td>
@@ -46,7 +46,7 @@ tr.selected {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in stageMessages()">
+          <tr v-for="item in stageMessages()" v-bind:class="{ selected: item.selected }">
             <td>{{item.date}}</td>
             <td><a v-on:click="showDetail(item)">{{item.subject}}</a></td>
             <td><button class="button-small pure-button pure-button-primary" v-on:click="unstage(item)">UNSTAGE</button></td>

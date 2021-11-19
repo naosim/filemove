@@ -9,9 +9,11 @@ var detailRepository: DetailRepository;
 class MessageVM {
   #value;
   isChecked: boolean;
+  selected: boolean;
   constructor(value: {id: string, subject: string, isChecked: boolean, date: Date}, private readonly today: Date) {
     this.#value = value;
     this.isChecked = value.isChecked;
+    this.selected = false;
   }
   get id() {
     return this.#value.id;
@@ -31,14 +33,28 @@ class MessageVM {
   }  
 }
 
+class MessageVMList {
+  constructor(readonly values: MessageVM[]) {
+  }
+  inboxMessages(): MessageVM[] {
+    return this.values.filter(v => !v.isChecked)
+  }
+  stageMessages(): MessageVM[] {
+    return this.values.filter(v => v.isChecked)
+  }
+  select(id: string) {
+    this.values.forEach(v => v.selected = (v.id == id))
+  }
+}
+
 function today(): Date {
   return new Date(new Date().toLocaleDateString());
 }
 
 var data = {
-  list: [
+  list: new MessageVMList([
     new MessageVM({id:"1", subject: "sample", isChecked: false, date: new Date()}, today()),
-  ],
+  ]),
   detail: {
     subject: 'さぶじぇくと',
     body: 'ぼでぃー',
@@ -52,10 +68,10 @@ var app = new Vue({
   data: data,
   methods: {
     inboxMessages: function() {
-      return data.list.filter(v => !v.isChecked)
+      return data.list.inboxMessages()
     },
     stageMessages: function() {
-      return data.list.filter(v => v.isChecked)
+      return data.list.stageMessages()
     },
     stage: function(item: MessageVM) {
       item.isChecked = true;
@@ -65,7 +81,7 @@ var app = new Vue({
     },
     showDetail: async function(item: MessageVM) {
       const body = await detailRepository.find(item.id)
-
+      data.list.select(item.id);
       data.detail.subject = item.id;
       data.detail.body = body;
       data.detail.selected = item;
@@ -80,8 +96,9 @@ var app = new Vue({
     },
     reload: async function() {
       await inboxFileRepository.reload()
-      data.list = inboxFileRepository.findAll()
-        .map(v => new MessageVM({id: v.id, subject: v.name, isChecked: false, date: v.date}, today()))
+      const list = inboxFileRepository.findAll()
+      .map(v => new MessageVM({id: v.id, subject: v.name, isChecked: false, date: v.date}, today()))
+      data.list = new MessageVMList(list)
     },
     archiveAll: async function() {
       const list = this.stageMessages();
@@ -89,7 +106,7 @@ var app = new Vue({
         const v = list[i];
         await inboxFileRepository.archive(v.id);
       }
-      data.list = this.inboxMessages();
+      data.list = new MessageVMList(data.list.inboxMessages());
       
     }
   },

@@ -122,10 +122,12 @@ class MessageVM {
     today;
     #value;
     isChecked;
+    selected;
     constructor(value, today){
         this.today = today;
         this.#value = value;
         this.isChecked = value.isChecked;
+        this.selected = false;
     }
     get id() {
         return this.#value.id;
@@ -144,18 +146,36 @@ class MessageVM {
         return this.#value.date.toLocaleString().split(':').slice(0, -1).join(':');
     }
 }
+class MessageVMList {
+    values;
+    constructor(values){
+        this.values = values;
+    }
+    inboxMessages() {
+        return this.values.filter((v)=>!v.isChecked
+        );
+    }
+    stageMessages() {
+        return this.values.filter((v)=>v.isChecked
+        );
+    }
+    select(id) {
+        this.values.forEach((v)=>v.selected = v.id == id
+        );
+    }
+}
 function today1() {
     return new Date(new Date().toLocaleDateString());
 }
 var data = {
-    list: [
+    list: new MessageVMList([
         new MessageVM({
             id: "1",
             subject: "sample",
             isChecked: false,
             date: new Date()
         }, today1()), 
-    ],
+    ]),
     detail: {
         subject: 'さぶじぇくと',
         body: 'ぼでぃー',
@@ -167,12 +187,10 @@ var app = new Vue({
     data: data,
     methods: {
         inboxMessages: function() {
-            return data.list.filter((v)=>!v.isChecked
-            );
+            return data.list.inboxMessages();
         },
         stageMessages: function() {
-            return data.list.filter((v)=>v.isChecked
-            );
+            return data.list.stageMessages();
         },
         stage: function(item) {
             item.isChecked = true;
@@ -182,6 +200,7 @@ var app = new Vue({
         },
         showDetail: async function(item) {
             const body = await detailRepository.find(item.id);
+            data.list.select(item.id);
             data.detail.subject = item.id;
             data.detail.body = body;
             data.detail.selected = item;
@@ -196,13 +215,14 @@ var app = new Vue({
         },
         reload: async function() {
             await inboxFileRepository.reload();
-            data.list = inboxFileRepository.findAll().map((v)=>new MessageVM({
+            const list = inboxFileRepository.findAll().map((v)=>new MessageVM({
                     id: v.id,
                     subject: v.name,
                     isChecked: false,
                     date: v.date
                 }, today1())
             );
+            data.list = new MessageVMList(list);
         },
         archiveAll: async function() {
             const list = this.stageMessages();
@@ -210,7 +230,7 @@ var app = new Vue({
                 const v = list[i];
                 await inboxFileRepository.archive(v.id);
             }
-            data.list = this.inboxMessages();
+            data.list = new MessageVMList(data.list.inboxMessages());
         }
     }
 });
