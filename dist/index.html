@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <meta charset="utf-8" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.css" integrity="sha512-5fsy+3xG8N/1PV5MIJz9ZsWpkltijBI48gBzQ/Z2eVATePGHOkMIn+xTDHIfTZFVb9GMpflF2wOWItqxAP2oLQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
 <style>
+html {
+  padding: 12px;
+}
+tr.selected {
+  background-color:lemonchiffon;
+}
+.button-small {
+  font-size: 85%;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 <body>
-<div id="app" class="container">
-  <div class="row">
-    <div class="six columns">
+<div id="app" class="pure-g">
+    <div class="pure-u-1-2">
       <h4>INBOX</h4>
-      <button v-on:click="init">更新</button>
-      <table class="u-full-width">
+      <button class="button-small pure-button pure-button-primary" v-on:click="init">更新</button>
+      <table class="pure-table pure-table-horizontal">
         <thead>
           <tr>
             <th>date</th>
@@ -22,14 +30,14 @@
           <tr v-for="item in inboxMessages()">
             <td>{{item.date}}</td>
             <td><a v-on:click="showDetail(item)">{{item.subject}}</a></td>
-            <td><button v-on:click="stage(item)">STAGE</button></td>
+            <td><button class="button-small pure-button pure-button-primary" v-on:click="stage(item)">STAGE</button></td>
           </tr> 
         </tbody>
       </table>
 
       
       <h4>STAGE</h4>
-      <table class="u-full-width">
+      <table class="pure-table pure-table-horizontal">
         <thead>
           <tr>
             <th>date</th>
@@ -41,20 +49,20 @@
           <tr v-for="item in stageMessages()">
             <td>{{item.date}}</td>
             <td><a v-on:click="showDetail(item)">{{item.subject}}</a></td>
-            <td><button v-on:click="unstage(item)">UNSTAGE</button></td>
+            <td><button class="button-small pure-button pure-button-primary" v-on:click="unstage(item)">UNSTAGE</button></td>
           </tr>
         </tbody>
       </table>
-      <button v-on:click="archiveAll()">アーカイブする</button>
+      <button class="button-small pure-button pure-button-primary" v-on:click="archiveAll()">アーカイブする</button>
     </div>
-    <div class="six columns">
+    <div class="pure-u-1-2">
       <div class="six columns" style="position: fixed;">
       <h4>詳細</h4>
       件名：{{detail.subject}}
       <pre><code>{{detail.body}}</code></pre>
       </div>
     </div>
-</div></div>
+</div>
 
 <script src="filemove.js"></script>
 <script>
