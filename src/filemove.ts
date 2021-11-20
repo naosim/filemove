@@ -9,9 +9,11 @@ var detailRepository: DetailRepository;
 class MessageVM {
   #value;
   isChecked: boolean;
+  selected: boolean;
   constructor(value: {id: string, subject: string, isChecked: boolean, date: Date}, private readonly today: Date) {
     this.#value = value;
     this.isChecked = value.isChecked;
+    this.selected = false;
   }
   get id() {
     return this.#value.id;
@@ -28,7 +30,33 @@ class MessageVM {
       return this.#value.date.toLocaleString().slice(5).split(':').slice(0, -1).join(':');
     }
     return this.#value.date.toLocaleString().split(':').slice(0, -1).join(':');
-  }  
+  }
+  get dateRaw(): Date {
+    return this.#value.date
+  }
+}
+
+class MessageVMList {
+  constructor(readonly values: MessageVM[]) {
+  }
+  inboxMessages(filterTextList: string[]): MessageVM[] {
+    return this.values
+      .filter(v => !v.isChecked)
+      .filter(v => {
+        for(let i = 0; i < filterTextList.length; i++) {
+          if(`${v.dateRaw.toLocaleString()} ${v.subject}`.indexOf(filterTextList[i]) == -1) {
+            return false;
+          }
+        }
+        return true;
+      })
+  }
+  stageMessages(): MessageVM[] {
+    return this.values.filter(v => v.isChecked)
+  }
+  select(id: string) {
+    this.values.forEach(v => v.selected = (v.id == id))
+  }
 }
 
 function today(): Date {
@@ -36,14 +64,14 @@ function today(): Date {
 }
 
 var data = {
-  list: [
+  list: new MessageVMList([
     new MessageVM({id:"1", subject: "sample", isChecked: false, date: new Date()}, today()),
-  ],
+  ]),
   detail: {
     subject: 'さぶじぇくと',
-    body: 'ぼでぃー',
-    selected: null as MessageVM | null
-  }
+    body: 'ぼでぃー'
+  },
+  filterText: ''
 }
 declare var Vue: any;
 
@@ -52,10 +80,10 @@ var app = new Vue({
   data: data,
   methods: {
     inboxMessages: function() {
-      return data.list.filter(v => !v.isChecked)
+      return data.list.inboxMessages(data.filterText.split(' '))
     },
     stageMessages: function() {
-      return data.list.filter(v => v.isChecked)
+      return data.list.stageMessages()
     },
     stage: function(item: MessageVM) {
       item.isChecked = true;
@@ -65,10 +93,9 @@ var app = new Vue({
     },
     showDetail: async function(item: MessageVM) {
       const body = await detailRepository.find(item.id)
-
+      data.list.select(item.id);
       data.detail.subject = item.id;
       data.detail.body = body;
-      data.detail.selected = item;
     },
     init: async function() {
       if(!inboxFileRepository) {
@@ -80,8 +107,9 @@ var app = new Vue({
     },
     reload: async function() {
       await inboxFileRepository.reload()
-      data.list = inboxFileRepository.findAll()
-        .map(v => new MessageVM({id: v.id, subject: v.name, isChecked: false, date: v.date}, today()))
+      const list = inboxFileRepository.findAll()
+      .map(v => new MessageVM({id: v.id, subject: v.name, isChecked: false, date: v.date}, today()))
+      data.list = new MessageVMList(list)
     },
     archiveAll: async function() {
       const list = this.stageMessages();
@@ -89,7 +117,7 @@ var app = new Vue({
         const v = list[i];
         await inboxFileRepository.archive(v.id);
       }
-      data.list = this.inboxMessages();
+      data.list = new MessageVMList(data.list.inboxMessages([]));
       
     }
   },
